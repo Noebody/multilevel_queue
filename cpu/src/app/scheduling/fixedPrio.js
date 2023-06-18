@@ -5,7 +5,7 @@ class Process {
   constructor(pid, priority, cpuTime, ioTime) {
     this.pid = pid;
     this.priority = priority;
-    this.cpuTime = cpuTime;
+    this. = cpuTime;
     this.ioTime = ioTime;
   }
 }
