@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
 
 export default function Home() {
   const [queue, setQueue] = useState([]);
+  const [messages, setMessages] = useState([]);
 
   function createProcess(PID, priority, cpuTime, ioTime) {
     return {
@@ -14,45 +16,43 @@ export default function Home() {
     };
   }
 
-  console.log(queue);
-
   // Function to execute a process for one time unit
-  function executeProcess(process) {
+  async function executeProcess(process) {
     // Print the process being executed
-    console.log(`Executing process ${process.pid}`);
-
-    // Decrement the CPU time
-    setQueue((prev) => {
-      return prev.map((item) => {
-        if (item.pid == process.pid) {
-          return {
-            ...item,
-            cpuTime: item.cpuTime - 1,
-          };
-        }
-        return item;
-      });
+    setMessages((prev) => {
+      return [
+        ...prev,
+        `Executing process ${process.pid} with CPU time ${process.cpuTime}`,
+      ];
     });
 
-    // If CPU time is zero, remove the process from the queue
-    if (process.cpuTime == 0) {
-      console.log(`Process ${process.pid} completed`);
-    }
+    await new Promise((resolve) => {
+      let i = 0;
+      const interval = setInterval(() => {
+        setMessages((prev) => {
+          return [...prev, `${process.cpuTime - i}`];
+        });
+        i++;
+
+        if (i >= process.cpuTime) {
+          setMessages((prev) => {
+            return [...prev, `Process ${process.pid} completed`];
+          });
+
+          clearInterval(interval);
+          resolve();
+        }
+      }, 1000);
+    });
+    setQueue((prev) => {
+      return prev.filter((p) => p.pid !== process.pid);
+    });
   }
 
-  function processQueue() {
-    // If queue is empty, return
-    // if (queue.length == 0) {
-    //   console.log("No more processes to execute");
-    //   return;
-    // }
-
-    // Execute the process at the front of the process
-    queue.forEach((process) => {
-      executeProcess(process);
-    });
-
-    // Execute the next process in the process
+  async function processQueue(queue) {
+    for (const process of queue) {
+      await executeProcess(process);
+    }
   }
 
   useEffect(() => {
@@ -67,101 +67,74 @@ export default function Home() {
     );
   }, []);
 
-  useEffect(() => {
-    processQueue();
-  }, [queue.length]);
-
   return (
     <main className="">
-      <h1>Process Scheduling with Multiple Queues</h1>
+      <h1 className="text-xl font-bold p-4">
+        Fixed Priority Pre-emptive Scheduling
+      </h1>
       <div>
-        <table class="table-auto">
+        <table class="table-auto mx-16 my-4">
           <thead>
             <tr>
               <th class="px-4 py-2">Process</th>
-              <th class="px-4 py-2">Arrival Time</th>
-              <th class="px-4 py-2">Burst Time</th>
               <th class="px-4 py-2">Priority</th>
+              <th class="px-4 py-2">Burst Time</th>
+              <th class="px-4 py-2">Arrival Time</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td class="border px-4 py-2">P1</td>
               <td class="border px-4 py-2">0</td>
-              <td class="border px-4 py-2">8</td>
-              <td class="border px-4 py-2">2</td>
-            </tr>
-            <tr class="bg-gray-100">
-              <td class="border px-4 py-2">P2</td>
-              <td class="border px-4 py-2">1</td>
-              <td class="border px-4 py-2">4</td>
-              <td class="border px-4 py-2">1</td>
-            </tr>
-            <tr>
-              <td class="border px-4 py-2">P3</td>
-              <td class="border px-4 py-2">2</td>
-              <td class="border px-4 py-2">9</td>
               <td class="border px-4 py-2">3</td>
-            </tr>
-            <tr class="bg-gray-100">
-              <td class="border px-4 py-2">P4</td>
-              <td class="border px-4 py-2">3</td>
-              <td class="border px-4 py-2">5</td>
-              <td class="border px-4 py-2">2</td>
-            </tr>
-            <tr>
-              <td class="border px-4 py-2">P5</td>
-              <td class="border px-4 py-2">4</td>
-              <td class="border px-4 py-2">2</td>
-              <td class="border px-4 py-2">3</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <table class="table-auto">
-          <thead>
-            <tr>
-              <th class="px-4 py-2">Process</th>
-              <th class="px-4 py-2">Arrival Time</th>
-              <th class="px-4 py-2">Burst Time</th>
-              <th class="px-4 py-2">Priority</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="border px-4 py-2">P1</td>
               <td class="border px-4 py-2">0</td>
-              <td class="border px-4 py-2">8</td>
-              <td class="border px-4 py-2">2</td>
             </tr>
             <tr class="bg-gray-100">
               <td class="border px-4 py-2">P2</td>
               <td class="border px-4 py-2">1</td>
-              <td class="border px-4 py-2">4</td>
-              <td class="border px-4 py-2">1</td>
+              <td class="border px-4 py-2">6</td>
+              <td class="border px-4 py-2">3</td>
             </tr>
             <tr>
               <td class="border px-4 py-2">P3</td>
               <td class="border px-4 py-2">2</td>
-              <td class="border px-4 py-2">9</td>
-              <td class="border px-4 py-2">3</td>
+              <td class="border px-4 py-2">4</td>
+              <td class="border px-4 py-2">4</td>
             </tr>
             <tr class="bg-gray-100">
               <td class="border px-4 py-2">P4</td>
-              <td class="border px-4 py-2">3</td>
+              <td class="border px-4 py-2">0</td>
               <td class="border px-4 py-2">5</td>
-              <td class="border px-4 py-2">2</td>
+              <td class="border px-4 py-2">5</td>
             </tr>
             <tr>
               <td class="border px-4 py-2">P5</td>
-              <td class="border px-4 py-2">4</td>
+              <td class="border px-4 py-2">1</td>
               <td class="border px-4 py-2">2</td>
               <td class="border px-4 py-2">3</td>
             </tr>
           </tbody>
         </table>
       </div>
-      <div>{}</div>
+      <div>
+        <button
+          className="p-2 bg-blue-500 rounded-md text-white mt-4 mx-16 my-4"
+          onClick={() => {
+            processQueue(queue);
+          }}
+        >
+          Start
+        </button>
+        <span className="p-2 bg-blue-500 rounded-md text-white mt-4 mx-16 my-4">
+          <Link href={"/timeslice"}>Next</Link>
+        </span>
+
+        <div className="py-2 mx-16 my-4">
+          {messages.map((message) => (
+            <p>{message}</p>
+          ))}
+        </div>
+      </div>
     </main>
   );
 }
