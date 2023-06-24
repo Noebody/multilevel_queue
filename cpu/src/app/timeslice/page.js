@@ -7,7 +7,7 @@ const page = () => {
   // Time Slicing Scheduling //
   //create three queues with different priorities (high, mid, low)
   const [messages, setMessages] = useState([]);
-  const [ms, setMs] = useState(0);
+  const [ms, setTotalMs] = useState(0);
   const [intervalId, setIntervalId] = useState(null);
 
   const [queue, setQueue] = useState({
@@ -16,7 +16,7 @@ const page = () => {
     lowPrioQueue: [],
   });
 
-  console.log(queue);
+  console.log(ms);
 
   function createProcess(PID, priority, cpuTime, ioTime) {
     return {
@@ -31,7 +31,7 @@ const page = () => {
   useEffect(() => {
     const array = [
       createProcess(1, 0, 30, 0),
-      createProcess(2, 1, 60, 0),
+      createProcess(2, 1, 50, 0),
       createProcess(3, 2, 40, 0),
       createProcess(4, 0, 50, 0),
       createProcess(5, 1, 20, 0),
@@ -82,37 +82,102 @@ const page = () => {
 
   // Function to execute a process
   async function executeProcessBySlicing(process) {
+    let time = 0;
+
+    console.log("process", process);
+
     // Print the process being executed
     if (getExecutableProcess(process)) {
-      setQueue((prev) => {
-        if (process.priority == 0) {
-          return {
+      if (process.priority == 0) {
+        time = time + process.cpuTime;
+        setTotalMs((prev) => prev + time);
+        setQueue((prev) => {
+          if (process.priority == 0) {
+            return {
+              ...prev,
+              highPrioQueue: prev.highPrioQueue.filter(
+                (p) => p.pid !== process.pid
+              ),
+            };
+          }
+        });
+
+        return setMessages((prev) => {
+          return [
             ...prev,
-            highPrioQueue: prev.highPrioQueue.filter(
-              (p) => p.pid !== process.pid
-            ),
-          };
-        }
-        if (process.priority == 1) {
-          return {
+            // `Executing high priority process ${process.pid} with CPU time ${process.cpuTime}`,
+            `Process ${process.pid} completed`,
+          ];
+        });
+      }
+
+      if (process.priority == 1) {
+        time = time + process.cpuTime;
+        setTotalMs((prev) => prev + time);
+        setQueue((prev) => {
+          if (process.priority == 1) {
+            return {
+              ...prev,
+              midPrioQueue: prev.midPrioQueue.filter(
+                (p) => p.pid !== process.pid
+              ),
+            };
+          }
+        });
+
+        return setMessages((prev) => {
+          return [
             ...prev,
-            midPrioQueue: prev.midPrioQueue.filter(
-              (p) => p.pid !== process.pid
-            ),
-          };
-        }
-        if (process.priority == 2) {
-          return {
+            // `Executing high priority process ${process.pid} with CPU time ${process.cpuTime}`,
+            `Process ${process.pid} completed`,
+          ];
+        });
+      }
+
+      if (process.priority == 2) {
+        time = time + process.cpuTime;
+        setTotalMs((prev) => prev + time);
+        setQueue((prev) => {
+          if (process.priority == 2) {
+            return {
+              ...prev,
+              lowPrioQueue: prev.lowPrioQueue.filter(
+                (p) => p.pid !== process.pid
+              ),
+            };
+          }
+        });
+
+        return setMessages((prev) => {
+          return [
             ...prev,
-            lowPrioQueue: prev.lowPrioQueue.filter(
-              (p) => p.pid !== process.pid
-            ),
-          };
-        }
-      });
-      return setMessages((prev) => {
-        return [...prev, `Process ${process.pid} completed`];
-      });
+            // `Executing high priority process ${process.pid} with CPU time ${process.cpuTime}`,
+            `Process ${process.pid} completed`,
+          ];
+        });
+      }
+
+      // setQueue((prev) => {
+      //   if (process.priority == 1) {
+      //     return {
+      //       ...prev,
+      //       midPrioQueue: prev.midPrioQueue.filter(
+      //         (p) => p.pid !== process.pid
+      //       ),
+      //     };
+      //   }
+      //   if (process.priority == 2) {
+      //     return {
+      //       ...prev,
+      //       lowPrioQueue: prev.lowPrioQueue.filter(
+      //         (p) => p.pid !== process.pid
+      //       ),
+      //     };
+      //   }
+      // });
+      // return setMessages((prev) => {
+      //   return [...prev, `Process ${process.pid} completed`];
+      // });
     }
     // Decrement the CPU time based on priority
 
@@ -124,6 +189,22 @@ const page = () => {
         ];
       });
       process.cpuTime -= 10;
+      time = time + 10;
+
+      setQueue((prev) => {
+        const highPrioProcess = prev.highPrioQueue.find(
+          (p) => p.pid == process.pid
+        );
+        if (highPrioProcess) {
+          return {
+            ...prev,
+            highPrioQueue: [
+              ...prev.highPrioQueue.filter((p) => p.pid !== process.pid),
+              highPrioProcess,
+            ],
+          };
+        }
+      });
     }
 
     if (process.priority == 1) {
@@ -134,6 +215,7 @@ const page = () => {
         ];
       });
       process.cpuTime -= 6;
+      time = time + 6;
     }
 
     if (process.priority == 2) {
@@ -144,7 +226,13 @@ const page = () => {
         ];
       });
       process.cpuTime -= 4;
+      time = time + 4;
     }
+
+    setTotalMs((prev) => {
+      return prev + time;
+    });
+
     // If CPU time is zero, remove the process from the queue
   }
 
@@ -170,9 +258,9 @@ const page = () => {
         prev.lowPrioQueue.length == 0
       ) {
         setMessages((prev) => {
-          return [...prev, `Al processes completed`];
+          return [...prev, `All processes completed`];
         });
-        l;
+
         setIntervalId((prev) => {
           console.log(prev);
           clearInterval(prev);
@@ -239,11 +327,11 @@ const page = () => {
                 // setSecondsLine((prev) => {
                 //   return [...prev, <div>{prev.length + 1}</div>];
                 // });
-                setMs((ms) => {
+                setTotalMs((ms) => {
                   setMessages((prev) => {
                     return [...prev, `Ms: ${ms}`];
                   });
-                  return ms + 20;
+                  return ms;
                 });
               }, 500);
               setIntervalId(interval);
