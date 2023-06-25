@@ -9,6 +9,7 @@ const page = () => {
   const [messages, setMessages] = useState([]);
   const [ms, setTotalMs] = useState(0);
   const [intervalId, setIntervalId] = useState(null);
+  const [currentQueue, setCurrentQueue] = useState("highPrioQueue");
 
   const [queue, setQueue] = useState({
     highPrioQueue: [],
@@ -183,10 +184,7 @@ const page = () => {
 
     if (process.priority == 0) {
       setMessages((prev) => {
-        return [
-          ...prev,
-          `Executing high priority process ${process.pid} with CPU time ${process.cpuTime}`,
-        ];
+        return [...prev, `High-prio P${process.pid}: ${process.cpuTime}`];
       });
       process.cpuTime -= 10;
       time = time + 10;
@@ -209,24 +207,23 @@ const page = () => {
 
     if (process.priority == 1) {
       setMessages((prev) => {
-        return [
-          ...prev,
-          `Executing mid priority process ${process.pid} with CPU time ${process.cpuTime}`,
-        ];
+        return [...prev, `Mid-prio P${process.pid}: ${process.cpuTime}`];
       });
       process.cpuTime -= 6;
+      if (process.cpuTime - 6 < 0) {
+        setCurrentQueue((prevQueue) => {
+          return "highPrioQueue";
+        });
+      }
       time = time + 6;
     }
 
     if (process.priority == 2) {
       setMessages((prev) => {
-        return [
-          ...prev,
-          `Executing low priority process ${process.pid} with CPU time ${process.cpuTime}`,
-        ];
+        return [...prev, `Low-prio P${process.pid}: ${process.cpuTime}`];
       });
       process.cpuTime -= 4;
-      time = time + 4;
+      if (process.cpuTime - 4) time = time + 4;
     }
 
     setTotalMs((prev) => {
@@ -241,17 +238,17 @@ const page = () => {
     // If all queues are empty, return
 
     setQueue((prev) => {
-      if (prev.highPrioQueue.length > 0) {
-        executeProcessBySlicing(prev.highPrioQueue[0]);
-      }
-
-      if (prev.midPrioQueue.length > 0) {
-        executeProcessBySlicing(prev.midPrioQueue[0]);
-      }
-
-      if (prev.lowPrioQueue.length > 0) {
-        executeProcessBySlicing(prev.lowPrioQueue[0]);
-      }
+      setCurrentQueue((prevQueue) => {
+        prev[prevQueue].length !== 0 &&
+          executeProcessBySlicing(prev[prevQueue][0]);
+        if (prevQueue === "lowPrioQueue") {
+          return "highPrioQueue";
+        }
+        if (prevQueue === "highPrioQueue") {
+          return "midPrioQueue";
+        }
+        return "lowPrioQueue";
+      });
       if (
         prev.highPrioQueue.length == 0 &&
         prev.midPrioQueue.length == 0 &&
@@ -294,7 +291,7 @@ const page = () => {
             <tr className="bg-gray-100">
               <td className="border px-4 py-2">P2</td>
               <td className="border px-4 py-2">1</td>
-              <td className="border px-4 py-2">60</td>
+              <td className="border px-4 py-2">50</td>
               <td className="border px-4 py-2">0</td>
             </tr>
             <tr>
