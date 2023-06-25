@@ -32,7 +32,7 @@ const page = () => {
   useEffect(() => {
     const array = [
       createProcess(1, 0, 30, 0),
-      createProcess(2, 1, 50, 0),
+      createProcess(2, 1, 60, 0),
       createProcess(3, 2, 40, 0),
       createProcess(4, 0, 50, 0),
       createProcess(5, 1, 20, 0),
@@ -92,6 +92,7 @@ const page = () => {
       if (process.priority == 0) {
         time = time + process.cpuTime;
         setTotalMs((prev) => prev + time);
+
         setQueue((prev) => {
           if (process.priority == 0) {
             return {
@@ -115,6 +116,7 @@ const page = () => {
       if (process.priority == 1) {
         time = time + process.cpuTime;
         setTotalMs((prev) => prev + time);
+
         setQueue((prev) => {
           if (process.priority == 1) {
             return {
@@ -138,6 +140,7 @@ const page = () => {
       if (process.priority == 2) {
         time = time + process.cpuTime;
         setTotalMs((prev) => prev + time);
+
         setQueue((prev) => {
           if (process.priority == 2) {
             return {
@@ -157,30 +160,7 @@ const page = () => {
           ];
         });
       }
-
-      // setQueue((prev) => {
-      //   if (process.priority == 1) {
-      //     return {
-      //       ...prev,
-      //       midPrioQueue: prev.midPrioQueue.filter(
-      //         (p) => p.pid !== process.pid
-      //       ),
-      //     };
-      //   }
-      //   if (process.priority == 2) {
-      //     return {
-      //       ...prev,
-      //       lowPrioQueue: prev.lowPrioQueue.filter(
-      //         (p) => p.pid !== process.pid
-      //       ),
-      //     };
-      //   }
-      // });
-      // return setMessages((prev) => {
-      //   return [...prev, `Process ${process.pid} completed`];
-      // });
     }
-    // Decrement the CPU time based on priority
 
     if (process.priority == 0) {
       setMessages((prev) => {
@@ -291,7 +271,7 @@ const page = () => {
             <tr className="bg-gray-100">
               <td className="border px-4 py-2">P2</td>
               <td className="border px-4 py-2">1</td>
-              <td className="border px-4 py-2">50</td>
+              <td className="border px-4 py-2">60</td>
               <td className="border px-4 py-2">0</td>
             </tr>
             <tr>
@@ -330,7 +310,7 @@ const page = () => {
                   });
                   return ms;
                 });
-              }, 500);
+              }, 1000);
               setIntervalId(interval);
             } else {
               clearInterval(intervalId);
