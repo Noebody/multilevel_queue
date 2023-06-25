@@ -11,8 +11,6 @@ const page = () => {
   const [intervalId, setIntervalId] = useState(null);
   const [currentQueue, setCurrentQueue] = useState("highPrioQueue");
 
-  console.log("messages", messages);
-
   const [queue, setQueue] = useState({
     highPrioQueue: [],
     midPrioQueue: [],
