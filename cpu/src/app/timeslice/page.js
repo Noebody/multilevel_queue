@@ -32,10 +32,10 @@ const page = () => {
   useEffect(() => {
     const array = [
       createProcess(1, 0, 30, 0),
-      createProcess(2, 1, 60, 0),
-      createProcess(3, 2, 40, 0),
+      createProcess(2, 1, 36, 0),
+      createProcess(3, 2, 12, 0),
       createProcess(4, 0, 50, 0),
-      createProcess(5, 1, 20, 0),
+      createProcess(5, 1, 24, 0),
     ];
     function addProcessToQueue(processes) {
       // Add the processes to the queue based on priority
@@ -221,13 +221,35 @@ const page = () => {
       setCurrentQueue((prevQueue) => {
         prev[prevQueue].length !== 0 &&
           executeProcessBySlicing(prev[prevQueue][0]);
+
+        //looping through the queues to find the next process to execute based on priority
         if (prevQueue === "lowPrioQueue") {
-          return "highPrioQueue";
+          if (prev.midPrioQueue.length !== 0) {
+            return "midPrioQueue";
+          }
+          if (prev.highPrioQueue.length !== 0) {
+            return "highPrioQueue";
+          }
+          return "lowPrioQueue";
         }
-        if (prevQueue === "highPrioQueue") {
+        if (prevQueue === "midPrioQueue") {
+          if (prev.highPrioQueue.length !== 0) {
+            return "highPrioQueue";
+          }
+          if (prev.lowPrioQueue.length !== 0) {
+            return "lowPrioQueue";
+          }
           return "midPrioQueue";
         }
-        return "lowPrioQueue";
+        if (prevQueue === "highPrioQueue") {
+          if (prev.lowPrioQueue.length !== 0) {
+            return "lowPrioQueue";
+          }
+          if (prev.midPrioQueue.length !== 0) {
+            return "midPrioQueue";
+          }
+          return "highPrioQueue";
+        }
       });
       if (
         prev.highPrioQueue.length == 0 &&
@@ -271,13 +293,13 @@ const page = () => {
             <tr className="bg-gray-100">
               <td className="border px-4 py-2">P2</td>
               <td className="border px-4 py-2">1</td>
-              <td className="border px-4 py-2">60</td>
+              <td className="border px-4 py-2">36</td>
               <td className="border px-4 py-2">0</td>
             </tr>
             <tr>
               <td className="border px-4 py-2">P3</td>
               <td className="border px-4 py-2">2</td>
-              <td className="border px-4 py-2">40</td>
+              <td className="border px-4 py-2">12</td>
               <td className="border px-4 py-2">0</td>
             </tr>
             <tr className="bg-gray-100">
@@ -289,7 +311,7 @@ const page = () => {
             <tr>
               <td className="border px-4 py-2">P5</td>
               <td className="border px-4 py-2">1</td>
-              <td className="border px-4 py-2">20</td>
+              <td className="border px-4 py-2">24</td>
               <td className="border px-4 py-2">0</td>
             </tr>
           </tbody>
@@ -310,7 +332,7 @@ const page = () => {
                   });
                   return ms;
                 });
-              }, 1000);
+              }, 100);
               setIntervalId(interval);
             } else {
               clearInterval(intervalId);
