@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-
+import { motion } from "framer-motion";
 const page = () => {
   //--------------------//
   // Time Slicing Scheduling //
@@ -11,13 +11,13 @@ const page = () => {
   const [intervalId, setIntervalId] = useState(null);
   const [currentQueue, setCurrentQueue] = useState("highPrioQueue");
 
+  console.log("messages", messages);
+
   const [queue, setQueue] = useState({
     highPrioQueue: [],
     midPrioQueue: [],
     lowPrioQueue: [],
   });
-
-  console.log(ms);
 
   function createProcess(PID, priority, cpuTime, ioTime) {
     return {
@@ -31,10 +31,10 @@ const page = () => {
 
   useEffect(() => {
     const array = [
-      createProcess(1, 0, 30, 0),
+      createProcess(1, 0, 20, 0),
       createProcess(2, 1, 36, 0),
       createProcess(3, 2, 12, 0),
-      createProcess(4, 0, 50, 0),
+      createProcess(4, 0, 40, 0),
       createProcess(5, 1, 24, 0),
     ];
     function addProcessToQueue(processes) {
@@ -85,7 +85,7 @@ const page = () => {
   async function executeProcessBySlicing(process) {
     let time = 0;
 
-    console.log("process", process);
+    // console.log("process", process);
 
     // Print the process being executed
     if (getExecutableProcess(process)) {
@@ -108,7 +108,7 @@ const page = () => {
           return [
             ...prev,
             // `Executing high priority process ${process.pid} with CPU time ${process.cpuTime}`,
-            `Process ${process.pid} completed`,
+            `P${process.pid} out`,
           ];
         });
       }
@@ -132,7 +132,7 @@ const page = () => {
           return [
             ...prev,
             // `Executing high priority process ${process.pid} with CPU time ${process.cpuTime}`,
-            `Process ${process.pid} completed`,
+            `P${process.pid} out`,
           ];
         });
       }
@@ -156,7 +156,7 @@ const page = () => {
           return [
             ...prev,
             // `Executing high priority process ${process.pid} with CPU time ${process.cpuTime}`,
-            `Process ${process.pid} completed`,
+            `P${process.pid} out`,
           ];
         });
       }
@@ -164,7 +164,7 @@ const page = () => {
 
     if (process.priority == 0) {
       setMessages((prev) => {
-        return [...prev, `High-prio P${process.pid}: ${process.cpuTime}`];
+        return [...prev, `P${process.pid}`];
       });
       process.cpuTime -= 10;
       time = time + 10;
@@ -187,7 +187,7 @@ const page = () => {
 
     if (process.priority == 1) {
       setMessages((prev) => {
-        return [...prev, `Mid-prio P${process.pid}: ${process.cpuTime}`];
+        return [...prev, `P${process.pid}`];
       });
       process.cpuTime -= 6;
       if (process.cpuTime - 6 < 0) {
@@ -200,10 +200,10 @@ const page = () => {
 
     if (process.priority == 2) {
       setMessages((prev) => {
-        return [...prev, `Low-prio P${process.pid}: ${process.cpuTime}`];
+        return [...prev, `P${process.pid}`];
       });
       process.cpuTime -= 4;
-      if (process.cpuTime - 4) time = time + 4;
+      time = time + 4;
     }
 
     setTotalMs((prev) => {
@@ -224,29 +224,29 @@ const page = () => {
 
         //looping through the queues to find the next process to execute based on priority
         if (prevQueue === "lowPrioQueue") {
-          if (prev.midPrioQueue.length !== 0) {
-            return "midPrioQueue";
-          }
           if (prev.highPrioQueue.length !== 0) {
             return "highPrioQueue";
+          }
+          if (prev.midPrioQueue.length !== 0) {
+            return "midPrioQueue";
           }
           return "lowPrioQueue";
         }
         if (prevQueue === "midPrioQueue") {
-          if (prev.highPrioQueue.length !== 0) {
-            return "highPrioQueue";
-          }
           if (prev.lowPrioQueue.length !== 0) {
             return "lowPrioQueue";
+          }
+          if (prev.highPrioQueue.length !== 0) {
+            return "highPrioQueue";
           }
           return "midPrioQueue";
         }
         if (prevQueue === "highPrioQueue") {
-          if (prev.lowPrioQueue.length !== 0) {
-            return "lowPrioQueue";
-          }
           if (prev.midPrioQueue.length !== 0) {
             return "midPrioQueue";
+          }
+          if (prev.lowPrioQueue.length !== 0) {
+            return "lowPrioQueue";
           }
           return "highPrioQueue";
         }
@@ -256,9 +256,9 @@ const page = () => {
         prev.midPrioQueue.length == 0 &&
         prev.lowPrioQueue.length == 0
       ) {
-        setMessages((prev) => {
-          return [...prev, `All processes completed`];
-        });
+        // setMessages((prev) => {
+        //   return [...prev, `All processes out`];
+        // });
 
         setIntervalId((prev) => {
           console.log(prev);
@@ -270,88 +270,187 @@ const page = () => {
     });
   }
 
-  return (
-    <div>
-      <h1 className="text-xl font-bold p-4">Time-slice Scheduling</h1>
-      <div>
-        <table className="table-auto mx-16 my-4">
-          <thead>
-            <tr>
-              <th className="px-4 py-2">Process</th>
-              <th className="px-4 py-2">Priority</th>
-              <th className="px-4 py-2">Burst Time</th>
-              <th className="px-4 py-2">Arrival Time</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td className="border px-4 py-2">P1</td>
-              <td className="border px-4 py-2">0</td>
-              <td className="border px-4 py-2">30</td>
-              <td className="border px-4 py-2">0</td>
-            </tr>
-            <tr className="bg-gray-100">
-              <td className="border px-4 py-2">P2</td>
-              <td className="border px-4 py-2">1</td>
-              <td className="border px-4 py-2">36</td>
-              <td className="border px-4 py-2">0</td>
-            </tr>
-            <tr>
-              <td className="border px-4 py-2">P3</td>
-              <td className="border px-4 py-2">2</td>
-              <td className="border px-4 py-2">12</td>
-              <td className="border px-4 py-2">0</td>
-            </tr>
-            <tr className="bg-gray-100">
-              <td className="border px-4 py-2">P4</td>
-              <td className="border px-4 py-2">0</td>
-              <td className="border px-4 py-2">50</td>
-              <td className="border px-4 py-2">0</td>
-            </tr>
-            <tr>
-              <td className="border px-4 py-2">P5</td>
-              <td className="border px-4 py-2">1</td>
-              <td className="border px-4 py-2">24</td>
-              <td className="border px-4 py-2">0</td>
-            </tr>
-          </tbody>
-        </table>
+  function getAllMsMessages() {
+    return messages.filter((message) => message.includes("Ms:"));
+  }
 
-        <button
-          className="p-2 bg-blue-500 rounded-md text-white mt-4 mx-16 my-4"
-          onClick={() => {
-            if (!intervalId) {
-              const interval = setInterval(() => {
-                processQueueBySlicing();
-                // setSecondsLine((prev) => {
-                //   return [...prev, <div>{prev.length + 1}</div>];
-                // });
-                setTotalMs((ms) => {
-                  setMessages((prev) => {
-                    return [...prev, `Ms: ${ms}`];
+  return (
+    <div className="w-auto">
+      <h1 className="text-center text-5xl font-bold p-4">
+        Multilevel Queue Scheduling Example
+      </h1>
+      <div>
+        <div className="px-64 flex items-center justify-center flex-col">
+          <table className="table-auto my-4 w-full">
+            <thead>
+              <tr className="text-lg">
+                <th className="px-4 py-2">Process</th>
+                <th className="px-4 py-2">Priority</th>
+                <th className="px-4 py-2">Burst Time</th>
+                <th className="px-4 py-2">Arrival Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="text-md text-center">
+                <td className="border px-4 py-2">P1</td>
+                <td className="border px-4 py-2">0</td>
+                <td className="border px-4 py-2">20</td>
+                <td className="border px-4 py-2">0</td>
+              </tr>
+              <tr className="bg-gray-100 text-center">
+                <td className="border px-4 py-2">P2</td>
+                <td className="border px-4 py-2">1</td>
+                <td className="border px-4 py-2">36</td>
+                <td className="border px-4 py-2">0</td>
+              </tr>
+              <tr className="text-md text-center">
+                <td className="border px-4 py-2">P3</td>
+                <td className="border px-4 py-2">2</td>
+                <td className="border px-4 py-2">12</td>
+                <td className="border px-4 py-2">0</td>
+              </tr>
+              <tr className="bg-gray-100 text-center">
+                <td className="border px-4 py-2">P4</td>
+                <td className="border px-4 py-2">0</td>
+                <td className="border px-4 py-2">40</td>
+                <td className="border px-4 py-2">0</td>
+              </tr>
+              <tr className="text-md text-center">
+                <td className="border px-4 py-2">P5</td>
+                <td className="border px-4 py-2">1</td>
+                <td className="border px-4 py-2">24</td>
+                <td className="border px-4 py-2">0</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <button
+            className="px-4 py-2 bg-blue-500 rounded-md text-white text-lg my-4 drop-shadow-xl"
+            onClick={() => {
+              if (!intervalId) {
+                const interval = setInterval(() => {
+                  // setSecondsLine((prev) => {
+                  //   return [...prev, <div>{prev.length + 1}</div>];
+                  // });
+                  setTotalMs((ms) => {
+                    setMessages((prev) => {
+                      return [...prev, `Ms: ${ms}`];
+                    });
+                    return ms;
                   });
-                  return ms;
-                });
-              }, 100);
-              setIntervalId(interval);
-            } else {
-              clearInterval(intervalId);
-              setIntervalId(null);
-            }
-          }}
-        >
-          {intervalId ? "Stop" : "Start"}
-        </button>
+
+                  processQueueBySlicing();
+                }, 500);
+                setIntervalId(interval);
+              } else {
+                clearInterval(intervalId);
+                setIntervalId(null);
+              }
+            }}
+          >
+            {intervalId ? "Stop" : "Start"}
+          </button>
+        </div>
 
         {/* add a number of  */}
 
-        {messages.map((message, index) => {
+        <div className="flex w-max items-center mt-10 ml-10">
+          {messages.map((message, index, array) => {
+            if (message.includes("Ms:")) {
+              const prevMessage = array
+                .slice(0, index)
+                .reverse()
+                .find((message) => message.includes("Ms:"));
+              const value = array[index - 1];
+
+              let width = message.split(" ")[1];
+              // setTimeout(() => {
+              // document
+              //   .getElementById(message)
+              //   ?.scrollIntoView({ behavior: "smooth", block: "end" });
+              // }, 300);
+              // if (prevMessage) {
+              if (prevMessage) {
+                width = message.split(" ")[1] - prevMessage.split(" ")[1];
+              }
+
+              return (
+                <>
+                  <motion.span
+                    id={message}
+                    className="bg-gray-300 h-1 relative flex justify-center"
+                    initial={{
+                      width: `0rem`,
+                    }}
+                    animate={{
+                      width: `${width / 1.25}rem`,
+                      transition: {
+                        duration: 0.5,
+                      },
+                    }}
+                  >
+                    {value && (
+                      <div className=" absolute flex items-center flex-col">
+                        <motion.div
+                          className="w-[0.1rem] h-24 bg-gray-200"
+                          initial={{
+                            height: `0rem`,
+                          }}
+                          animate={{
+                            height: `6rem`,
+                            transition: {
+                              duration: 0.3,
+                            },
+                          }}
+                        />
+                        <motion.div
+                          className="w-10 h-10 flex items-center justify-center text-center"
+                          initial={{
+                            opacity: 0,
+                          }}
+                          animate={{
+                            opacity: 1,
+                            transition: {
+                              delay: 0.3,
+                              duration: 0.2,
+                            },
+                          }}
+                        >
+                          {value}
+                        </motion.div>
+                      </div>
+                    )}
+                  </motion.span>
+                  <motion.span
+                    className="w-2 h-2 bg-gray-500 rounded-full relative justify-center flex"
+                    initial={{
+                      opacity: 0,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      transition: {
+                        duration: 0.5,
+                      },
+                    }}
+                  >
+                    <div className="absolute bottom-5 text-lg font-semibold">
+                      {message.split(" ")[1]}
+                    </div>
+                  </motion.span>
+                </>
+              );
+              // }
+            }
+          })}
+        </div>
+
+        {/* {messages.map((message, index) => {
           return (
             <div key={index} className="py-2 mx-16 my-4">
               {message}
             </div>
           );
-        })}
+        })} */}
       </div>
     </div>
   );
