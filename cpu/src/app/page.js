@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 
 const page = () => {
   const [queue, setQueue] = useState([]);
-
+  const [Ms, setMs] = useState(0);
+  const [currentQueueID, setCurrentQueueID] = useState(0);
   function createProcess(PID, priority, cpuTime, ioTime) {
     return {
       pid: PID,
@@ -24,13 +25,27 @@ const page = () => {
     ]);
   }, []);
 
-  const startProcess = (process) => {};
+  const executeProcess = (process) => {
+    if (process.cpuTime - 10 <= 0) {
+      setQueue((prev) => {
+        return prev.filter((p) => p.pid !== process.pid);
+      });
+    }
 
-  return (
-    <div>
-      <button>Start</button>
-    </div>
-  );
+    const startOperation = () => {
+      while (queue.length > 0) {
+        //Filter the queue based on priority
+        const currentQueue = queue.filter(
+          (process) => process.priority == currentQueueID
+        );
+      }
+    };
+
+    return (
+      <div>
+        <button>Start</button>
+      </div>
+    );
+  };
 };
-
 export default page;
